@@ -73,7 +73,9 @@ def upload ():
 
         filename =secure_filename (file .filename )
         unique_filename =f"{uuid.uuid4().hex[:8]}_{filename}"
-        filepath =os .path .join ('static',unique_filename )
+        static_dir =os .path .join (os .path .dirname (os .path .dirname (os .path .abspath (__file__ ))),'static')
+        os .makedirs (static_dir ,exist_ok =True )
+        filepath =os .path .join (static_dir ,unique_filename )
         file .save (filepath )
 
         file_type =filename .rsplit ('.',1 )[1 ].lower ()
