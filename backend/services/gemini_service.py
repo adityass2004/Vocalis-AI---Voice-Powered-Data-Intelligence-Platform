@@ -20,23 +20,23 @@ class GeminiService :
         self .current_model =self .models [0 ]
         self .base_url_template ="https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
+    def set_api_key (self ,key :str )->Dict [str ,Any ]:
+        """Set Gemini API key at runtime (e.g. from frontend settings)"""
+        key =key .strip ()
+        if not key :
+            return {"success":False ,"error":"API key cannot be empty"}
+        self .api_key =key
+        os .environ ['GEMINI_API_KEY']=key
+        return {"success":True ,"message":"API key updated successfully"}
+
     def generate_response (self ,prompt :str ,context :str ="")->Dict [str ,Any ]:
         """Generate AI response using Gemini API with lightweight Flash fallback models"""
 
-        from dotenv import load_dotenv
-        load_dotenv (override =True )
-        self .api_key =os .getenv ('GEMINI_API_KEY')
-        if not self .api_key or self .api_key .strip ()in ['','your_gemini_api_key_here','your_api_key_here']:
-            return {"error":"Gemini API key not configured. Please set your GEMINI_API_KEY in backend/.env file."}
-
-        self .models =[
-        os .getenv ('GEMINI_MODEL','gemini-3.5-flash-lite'),
-        'gemini-3.5-flash-lite',
-        'gemini-3.6-flash',
-        'gemini-3.8-flash',
-        'gemini-1.5-flash'
-        ]
-        self .models =list (dict .fromkeys (self .models ))
+        # Re-read from env in case it was set after startup
+        if not self .api_key :
+            self .api_key =os .getenv ('GEMINI_API_KEY')
+        if not self .api_key or self .api_key .strip ()in ['','your_gemini_api_key_here','your_api_key_here','yaha-apna_gemini_ka_api_key_add_karo']:
+            return {"error":"Gemini API key not configured. Please set your GEMINI_API_KEY in the Settings panel or in backend/.env file."}
 
         headers ={
         "Content-Type":"application/json"
@@ -74,7 +74,7 @@ Keep responses natural and direct, focusing on insights that matter."""
         "topP":0.9 ,
         "maxOutputTokens":2048 ,
 
-        "stopSequences":["Option","Choice"]
+        "stopSequences":[]
         }
         }
 

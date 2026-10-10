@@ -188,3 +188,19 @@ def model ():
 
     except Exception as e :
         return jsonify ({'success':False ,'error':f'Model switch failed: {str(e)}'}),500
+
+@ai_bp .route ('/set-key',methods =['POST','OPTIONS'])
+def set_key ():
+    """Set the Gemini API key at runtime"""
+    if request .method =='OPTIONS':
+        return ('',204 )
+    try :
+        data =request .get_json (silent =True )or {}
+        api_key =data .get ('api_key','').strip ()
+        if not api_key :
+            return jsonify ({'success':False ,'error':'No API key provided'}),400
+
+        result =gemini_service .set_api_key (api_key )
+        return jsonify (result )
+    except Exception as e :
+        return jsonify ({'success':False ,'error':f'Failed to set API key: {str(e)}'}),500

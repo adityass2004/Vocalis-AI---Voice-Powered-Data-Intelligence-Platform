@@ -9,13 +9,16 @@ const App = () => {
   const [connectionStatus, setConnectionStatus] = useState('connecting')
   const [datasetLoaded, setDatasetLoaded] = useState(false)
   const [currentDataset, setCurrentDataset] = useState(null)
+  const [apiKeyConfigured, setApiKeyConfigured] = useState(false)
 
   useEffect(() => {
     const checkConnection = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/ai/status`)
         if (response.ok) {
+          const data = await response.json()
           setConnectionStatus('connected')
+          setApiKeyConfigured(data.api_key_configured || false)
         } else {
           setConnectionStatus('error')
         }
@@ -46,6 +49,7 @@ const App = () => {
           setCurrentView={setCurrentView}
           connectionStatus={connectionStatus}
           datasetLoaded={datasetLoaded}
+          apiKeyConfigured={apiKeyConfigured}
         />
 
         <main className="container mx-auto px-4 py-6 md:py-8">
@@ -75,3 +79,4 @@ const App = () => {
 }
 
 export default App
+
