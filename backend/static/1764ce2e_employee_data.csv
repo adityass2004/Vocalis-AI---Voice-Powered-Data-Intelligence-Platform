@@ -1,0 +1,9 @@
+Employee_ID,Name,Department,Position,Salary,Performance_Score,Experience_Years
+EMP101,Alice Smith,Engineering,Senior Software Engineer,125000,4.8,6
+EMP102,Bob Jones,Marketing,Marketing Lead,85000,4.2,4
+EMP103,Charlie Brown,Sales,Account Executive,92000,4.5,5
+EMP104,Diana Prince,Engineering,DevOps Manager,135000,4.9,8
+EMP105,Evan Wright,Product,Product Specialist,78000,3.9,3
+EMP106,Fiona Gallagher,HR,HR Coordinator,65000,4.1,2
+EMP107,George Clark,Sales,Sales Manager,110000,4.6,7
+EMP108,Hannah Abbott,Engineering,QA Lead,95000,4.4,5

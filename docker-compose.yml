@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: nova-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:80
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/static:/app/static
+    restart: unless-stopped
+    
+  frontend:
+    build: ./frontend
+    container_name: nova-frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Development override
+  backend-dev:
+    build: ./backend
+    container_name: nova-backend-dev
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=True
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+      - ./backend/static:/app/static
+    restart: unless-stopped
+    profiles:
+      - dev
+    
+  frontend-dev:
+    build: 
+      context: ./frontend
+      target: builder
+    container_name: nova-frontend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+    depends_on:
+      - backend-dev
+    restart: unless-stopped
+    profiles:
+      - dev
