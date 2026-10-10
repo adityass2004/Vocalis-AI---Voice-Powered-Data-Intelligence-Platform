@@ -199,7 +199,7 @@ const DataDashboard = ({ onDatasetLoaded }) => {
       }
     } catch (error) {
       console.error('Upload error:', error)
-      alert('Failed to upload file. Please try again.')
+      alert(error?.message ? `Upload error: ${error.message}` : 'Failed to upload file. Please try again.')
     } finally {
       setIsLoading(false)
     }

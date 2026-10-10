@@ -62,6 +62,11 @@ out/
 static/charts/
 static/audio/
 static/uploads/
+backend/static/*.csv
+backend/static/*.xlsx
+backend/static/*.xls
+backend/static/*.png
+backend/static/*.mp3
 *.mp3
 *.png
 *.jpg
