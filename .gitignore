@@ -154,3 +154,10 @@ dmypy.json
 
 # PyCharm
 .idea/
+
+# Neural Voice Models and generated audio
+backend/models/
+*.onnx
+*.bin
+*.wav
+backend/static/*.wav
