@@ -8,6 +8,7 @@ import plotly .graph_objects as go
 import plotly .utils
 import seaborn as sns
 from services .mixins .serialization_mixin import SerializationMixin
+from services.mixins.pro_mixin import ProAnalyticsMixin
 import os
 import json
 from io import StringIO
@@ -26,7 +27,7 @@ warnings .filterwarnings ('ignore')
 plt .style .use ('dark_background')
 sns .set_theme (style ="darkgrid",palette ="viridis")
 
-class DataService (SerializationMixin ):
+class DataService (SerializationMixin, ProAnalyticsMixin):
     def __init__ (self ,static_dir :str ='static'):
         self .static_dir =static_dir
         self .current_data =None

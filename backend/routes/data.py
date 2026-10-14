@@ -14,6 +14,33 @@ ALLOWED_EXTENSIONS ={'csv','xlsx','xls'}
 def allowed_file (filename ):
     return '.'in filename and filename .rsplit ('.',1 )[1 ].lower ()in ALLOWED_EXTENSIONS
 
+@data_bp.route('/pro-summary', methods=['GET'])
+def get_pro_summary():
+    """Get professional KPIs and headline insights"""
+    try:
+        res = data_service.get_pro_summary()
+        return jsonify(res), 200 if res.get('success') else 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@data_bp.route('/pro-presets', methods=['GET'])
+def get_pro_presets():
+    """List available analytical presets"""
+    try:
+        res = data_service.list_pro_presets()
+        return jsonify(res), 200 if res.get('success') else 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@data_bp.route('/pro-preset/<preset_id>', methods=['GET'])
+def run_pro_preset(preset_id):
+    """Run an automated professional analysis preset"""
+    try:
+        res = data_service.run_pro_preset(preset_id)
+        return jsonify(res), 200 if res.get('success') else 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @data_bp .route ('/quality',methods =['GET'])
 def get_data_quality ():
     """Get data quality metrics"""
