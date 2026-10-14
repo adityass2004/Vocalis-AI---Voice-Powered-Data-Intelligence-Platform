@@ -166,11 +166,11 @@ const App = () => {
             <AssistantUI 
               currentDataset={currentDataset} 
               onDatasetLoaded={handleDatasetLoaded}
-              onNavigateToDashboard={() => setCurrentView('dashboard')}
+              onNavigateToDashboard={() => setCurrentView('data')}
             />
           </div>
 
-          <div className={currentView === 'dashboard' ? 'block' : 'hidden'}>
+          <div className={(currentView === 'data' || currentView === 'dashboard') ? 'block' : 'hidden'}>
             <DataDashboard
               currentDataset={currentDataset}
               datasetHistory={datasetHistory}

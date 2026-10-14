@@ -108,7 +108,7 @@ const Header = ({ currentView, setCurrentView, connectionStatus, datasetLoaded, 
             <button
               onClick={() => setCurrentView('data')}
               className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-all duration-300 ${
-                currentView === 'data'
+                currentView === 'data' || currentView === 'dashboard'
                   ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-md shadow-indigo-500/20'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
               }`}

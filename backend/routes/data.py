@@ -129,6 +129,20 @@ def upload ():
         **result
         }
 
+        try:
+            pro_sum = data_service.get_pro_summary()
+            if pro_sum.get('success'):
+                complete_result['pro_summary'] = pro_sum
+        except Exception:
+            pass
+
+        try:
+            presets = data_service.list_pro_presets()
+            if presets.get('success'):
+                complete_result['pro_presets'] = presets
+        except Exception:
+            pass
+
         return jsonify (data_service ._json_safe (complete_result ))
 
     except Exception as e :
@@ -322,3 +336,63 @@ def statistics ():
 
     except Exception as e :
         return jsonify ({'error':f'Statistics generation failed: {str(e)}'}),500
+
+@data_bp.route('/clear', methods=['POST'])
+def clear_dataset():
+    """Clear active dataset from memory"""
+    try:
+        data_service.current_data = None
+        data_service.data_info = None
+        data_service.data_context = {}
+        return jsonify({'success': True, 'message': 'Dataset cleared'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@data_bp.route('/select-history', methods=['POST'])
+def select_history():
+    """Reload an existing historical dataset from static folder"""
+    try:
+        data = request.get_json(silent=True) or {}
+        filename = data.get('filename')
+        if not filename:
+            return jsonify({'success': False, 'error': 'No filename provided'}), 400
+
+        static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static')
+        filepath = os.path.join(static_dir, filename)
+        if not os.path.exists(filepath):
+            return jsonify({'success': False, 'error': 'File not found on server'}), 404
+
+        file_type = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'csv'
+        result = data_service.load_data(filepath, file_type)
+        if 'error' in result:
+            return jsonify(result), 500
+
+        dashboard = data_service.get_analytics_dashboard()
+        ai_context = data_service.get_ai_dataset_context()
+        brief_summary = data_service.get_brief_summary()
+
+        complete_result = {
+            'success': True,
+            'message': 'Historical dataset loaded successfully',
+            'filename': filename,
+            'dashboard': dashboard,
+            'ai_context': ai_context,
+            'brief_summary': brief_summary,
+            **result
+        }
+        try:
+            pro_summary = data_service.get_pro_summary()
+            if pro_summary.get('success'):
+                complete_result['pro_summary'] = pro_summary
+        except Exception:
+            pass
+        try:
+            pro_presets = data_service.list_pro_presets()
+            if pro_presets.get('success'):
+                complete_result['pro_presets'] = pro_presets
+        except Exception:
+            pass
+
+        return jsonify(data_service._json_safe(complete_result))
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
