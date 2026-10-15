@@ -115,7 +115,8 @@ class STTService:
         audio_source, 
         language: Optional[str] = None, 
         task: str = "transcribe",
-        model_size: Optional[str] = None
+        model_size: Optional[str] = None,
+        original_filename: Optional[str] = None
     ) -> Dict[str, Any]:
         """Transcribe or translate speech audio using local Faster-Whisper model.
 
@@ -123,22 +124,41 @@ class STTService:
         :param language: ISO language code (e.g. 'en', 'hi', 'es', 'fr', 'ja') or None for auto-detect
         :param task: 'transcribe' (native transcription) or 'translate' (speech-to-text English translation)
         :param model_size: 'turbo', 'small', 'base', or 'tiny'
+        :param original_filename: original audio file name to preserve extension (.webm, .wav, etc.)
         :return: Dict containing text, detected_language, confidence, duration, model, device
         """
         temp_path = None
         try:
+            # Determine suitable file suffix
+            suffix = ".webm"
+            fname = original_filename or getattr(audio_source, "filename", None)
+            if fname:
+                _, ext = os.path.splitext(fname)
+                if ext:
+                    suffix = ext.lower()
+
             if isinstance(audio_source, (bytes, bytearray)):
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
+                if len(audio_source) == 0:
+                    return {"success": False, "error": "Empty audio data received"}
+                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as f:
                     f.write(audio_source)
                     temp_path = f.name
                 audio_target = temp_path
             elif hasattr(audio_source, "read"):
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
-                    f.write(audio_source.read())
+                content = audio_source.read()
+                if not content or len(content) == 0:
+                    return {"success": False, "error": "Empty audio stream received"}
+                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as f:
+                    f.write(content)
                     temp_path = f.name
                 audio_target = temp_path
             else:
                 audio_target = str(audio_source)
+                if not os.path.exists(audio_target) or os.path.getsize(audio_target) == 0:
+                    return {"success": False, "error": "Audio file does not exist or is empty"}
+
+            if temp_path and os.path.getsize(temp_path) < 100:
+                return {"success": False, "error": "Audio recording too short"}
 
             used_model_size = model_size or self.default_model
             model = self._get_model(used_model_size)

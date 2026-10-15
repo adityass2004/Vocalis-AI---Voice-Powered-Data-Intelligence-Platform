@@ -1,6 +1,7 @@
 from flask import Blueprint ,request ,jsonify
 from services .gemini_service import GeminiService
 from services .tts_service import TTSService
+from services .stt_service import STTService
 from services .data_service import DataService
 import os
 import logging
@@ -8,6 +9,7 @@ import logging
 ai_bp =Blueprint ('ai',__name__ )
 gemini_service =GeminiService ()
 tts_service =TTSService ()
+stt_service =STTService ()
 
 try :
     from routes .data import data_service as shared_data_service
@@ -147,6 +149,53 @@ def tts ():
     except Exception as e :
         return jsonify ({'success':False ,'error':f'TTS failed: {str(e)}'}),500
 
+@ai_bp .route ('/transcribe',methods =['POST','OPTIONS'])
+def transcribe ():
+    """Transcribe speech audio using local Whisper model"""
+    if request .method =='OPTIONS':
+        return ('',204 )
+    try :
+        audio_file =None 
+        if 'audio'in request .files :
+            audio_file =request .files ['audio']
+        elif 'file'in request .files :
+            audio_file =request .files ['file']
+
+        if not audio_file or not getattr (audio_file ,'filename',None ):
+            raw_data =request .get_data ()
+            if not raw_data :
+                return jsonify ({'success':False ,'error':'No audio file or data provided'}),400 
+            audio_file =raw_data 
+
+        language =request .form .get ('language')or None 
+        task =request .form .get ('task')or 'transcribe'
+        model_size =request .form .get ('model')or None 
+        original_filename =getattr (audio_file ,'filename',None )or 'recording.webm'
+
+        result =stt_service .transcribe_audio (
+            audio_file ,
+            language =language ,
+            task =task ,
+            model_size =model_size ,
+            original_filename =original_filename 
+        )
+
+        status_code =200 if result .get ('success')else 500 
+        return jsonify (result ),status_code 
+    except Exception as e :
+        logging .exception ("Transcription endpoint failed")
+        return jsonify ({'success':False ,'error':f'Transcription failed: {str(e)}'}),500 
+
+@ai_bp .route ('/stt/models',methods =['GET','OPTIONS'])
+def stt_models ():
+    """List available local STT Whisper models"""
+    if request .method =='OPTIONS':
+        return ('',204 )
+    try :
+        return jsonify ({'success':True ,**stt_service .get_available_models ()})
+    except Exception as e :
+        return jsonify ({'success':False ,'error':str (e )}),500 
+
 @ai_bp .route ('/status',methods =['GET','OPTIONS'])
 def status ():
     if request .method =='OPTIONS':
@@ -160,7 +209,8 @@ def status ():
     'status':'healthy',
     'services':{
     'gemini_api_key':'configured'if api_key_ok else 'missing',
-    'tts':'ready'
+    'tts':'ready',
+    'stt':'ready'
     },
     'api_key_configured':api_key_ok ,
     'model_info':model_status

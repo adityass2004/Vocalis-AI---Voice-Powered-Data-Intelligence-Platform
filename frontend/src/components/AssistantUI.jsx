@@ -69,8 +69,10 @@ const AssistantUI = ({ currentDataset, onDatasetLoaded, onNavigateToDashboard })
     isListening, 
     isTranscribing,
     transcript, 
+    interimTranscript,
     detectedLanguage,
     usedModel,
+    error: speechError,
     startListening, 
     stopListening, 
     resetTranscript 
@@ -374,8 +376,16 @@ const AssistantUI = ({ currentDataset, onDatasetLoaded, onNavigateToDashboard })
           <div>
             <span className="text-xs font-semibold text-slate-200 block">
               {assistantStatus === 'ready' && 'Ready • Local Voice & Gemini 2.5 Pro'}
-              {assistantStatus === 'listening' && `Listening (${sttTask === 'translate' ? 'Translating to EN' : 'Transcribing'})...`}
-              {assistantStatus === 'transcribing' && `Transcribing with Whisper ${transcriberModel.toUpperCase()} (CUDA)...`}
+              {assistantStatus === 'listening' && (
+                <span className="text-rose-400 inline-flex items-center gap-1.5 font-medium">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                  </span>
+                  Live Transcribing ({sttTask === 'translate' ? 'Translating to EN' : 'Speaking'})...
+                </span>
+              )}
+              {assistantStatus === 'transcribing' && `Refining with Whisper ${transcriberModel.toUpperCase()} (CUDA)...`}
               {assistantStatus === 'processing' && 'Generating & Pre-Synthesizing Voice...'}
               {assistantStatus === 'speaking' && 'Speaking in Target Language...'}
               {assistantStatus === 'paused' && 'Voice Paused'}
@@ -553,6 +563,75 @@ const AssistantUI = ({ currentDataset, onDatasetLoaded, onNavigateToDashboard })
 
         {/* Input Bar with Direct Data Adder Attachment Button */}
         <div className="relative pt-2 border-t border-slate-800/80">
+          {speechError && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-2 p-2.5 rounded-xl bg-rose-950/70 border border-rose-800/80 text-rose-300 text-xs flex items-center justify-between shadow-lg"
+            >
+              <div className="flex items-center space-x-2">
+                <span className="text-sm">⚠️</span>
+                <span>{speechError}</span>
+              </div>
+              <button
+                type="button"
+                onClick={resetTranscript}
+                className="ml-3 px-2 py-0.5 rounded text-[11px] bg-rose-900/60 hover:bg-rose-800 text-rose-200 transition-colors"
+              >
+                Dismiss
+              </button>
+            </motion.div>
+          )}
+
+          {/* Live Transcription Real-time Waveform Preview Banner */}
+          {isListening && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-2 p-3 rounded-2xl bg-slate-900/95 border border-cyan-500/40 text-cyan-200 text-xs shadow-xl shadow-cyan-950/40 backdrop-blur-md flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center space-x-2.5 flex-1 min-w-0">
+                <div className="flex items-center space-x-0.5 px-2 py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 flex-shrink-0">
+                  <span className="w-1.5 h-3 bg-rose-500 rounded-full animate-[pulse_0.6s_ease-in-out_infinite]" />
+                  <span className="w-1.5 h-5 bg-rose-400 rounded-full animate-[pulse_0.4s_ease-in-out_infinite]" />
+                  <span className="w-1.5 h-2.5 bg-rose-500 rounded-full animate-[pulse_0.7s_ease-in-out_infinite]" />
+                  <span className="w-1.5 h-4 bg-rose-400 rounded-full animate-[pulse_0.5s_ease-in-out_infinite]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-rose-400">
+                    <span>Live Transcribing</span>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-cyan-400 font-normal lowercase">{selectedLanguage}</span>
+                  </div>
+                  <p className="text-slate-100 font-mono text-xs truncate mt-0.5">
+                    {transcript ? `"${transcript}"` : "Listening... Speak in any language..."}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleVoiceToggle}
+                className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-[11px] transition-all shadow-md shadow-rose-600/30 flex items-center gap-1 flex-shrink-0"
+              >
+                Done Speaking
+              </button>
+            </motion.div>
+          )}
+
+          {/* Whisper Refinement Banner */}
+          {isTranscribing && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-2 p-2.5 rounded-xl bg-indigo-950/80 border border-indigo-700/60 text-indigo-200 text-xs flex items-center justify-between shadow-lg"
+            >
+              <div className="flex items-center space-x-2">
+                <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+                <span>Refining precision with Whisper {transcriberModel.toUpperCase()} on CUDA...</span>
+              </div>
+            </motion.div>
+          )}
+
           <div className="flex items-end space-x-2">
             {/* Attachment Button for Quick Dataset Upload */}
             <motion.button
